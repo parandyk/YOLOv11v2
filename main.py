@@ -35,10 +35,10 @@ def train(args, params):
     # DDP setup
     if args.distributed:
         model = DistributedDataParallel(module=model,
-                                        device_ids=[args.rank],
+                                        device_ids=[args.local_rank],
                                         find_unused_parameters=True)
 
-    ema = util.EMA(model) if args.rank == 0 else None
+    ema = util.EMA(model) if args.local_rank == 0 else None
 
     sampler = None
     dataset = Dataset(args, params, True)
@@ -66,7 +66,7 @@ def train(args, params):
     best_map = 0.0
 
     with open('weights/step.csv', 'w') as log:
-        if args.rank == 0:
+        if args.local_rank == 0:
             logger = csv.DictWriter(log, fieldnames=['epoch',
                                                      'box', 'cls', 'dfl',
                                                      'Recall', 'Precision', 'mAP@50', 'mAP'])
@@ -84,7 +84,7 @@ def train(args, params):
             if args.epochs - epoch == 10:
                 loader.dataset.mosaic = False
 
-            if args.rank == 0:
+            if args.local_rank == 0:
                 print("\n" + "%11s" * 5 % ("Epoch", "GPU", "box", "cls", "dfl"))
                 p_bar = tqdm.tqdm(enumerate(loader), total=num_batch)
 
@@ -122,12 +122,12 @@ def train(args, params):
                         ema.update(model)
                     opt_step = glob_step
 
-                if args.rank == 0:
+                if args.local_rank == 0:
                     fmt = "%11s" * 2 + "%11.4g" * 3
                     memory = f'{torch.cuda.memory_reserved() / 1e9:.3g}G'
                     p_bar.set_description(fmt % (f"{epoch + 1}/{args.epochs}", memory, *t_loss))
 
-            if args.rank == 0:
+            if args.local_rank == 0:
                 m_pre, m_rec, map50, mean_map = validate(args, params, ema.ema)
                 box, cls, dfl = map(float, t_loss)
 
@@ -297,7 +297,7 @@ def inference(args, params):
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--rank', default=0, type=int)
+    parser.add_argument('--local-rank', default=0, type=int)
     parser.add_argument('--epochs', default=2, type=int)
     parser.add_argument('--num-cls', type=int, default=80)
     parser.add_argument('--inp-size', type=int, default=640)
@@ -310,7 +310,7 @@ def main():
 
     args = parser.parse_args()
 
-    args.rank = int(os.environ.get("RANK", 0))
+    args.local_rank = int(os.getenv('LOCAL_RANK', 0))
     args.world_size = int(os.getenv('WORLD_SIZE', 1))
     args.distributed = int(os.getenv('WORLD_SIZE', 1)) > 1
 
