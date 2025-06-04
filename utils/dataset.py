@@ -69,7 +69,7 @@ class Dataset(data.Dataset):
             counter += 1 # to be deleted
             p = Path(p)
             if counter % 100 == 0: #to be deleted
-                print(f"loaded images: " + {counter}) #to be deleted
+                print(f"loaded images: {counter}") #to be deleted
             with open(p) as f:
                 samples += [x.replace("./", str(p.parent) + os.sep)
                             if x.startswith("./") else x for x in
@@ -105,7 +105,7 @@ class Dataset(data.Dataset):
         for img, label in zip(images, labels):
             counter += 1 # to be deleted
             if counter % 100 == 0: #TO BE DELETED
-                print(f"loaded images: " + {counter}) #TO BE DELETED
+                print(f"loaded images: {counter}") #TO BE DELETED
             try:
                 image = Image.open(img)
                 image.verify()
