@@ -21,7 +21,8 @@ from utils.dataset import Dataset
 def train(args, params):
     util.init_seeds()
 
-    model = nn.yolo_v11_x(args.num_cls)
+    #model = nn.yolo_v11_x(args.num_cls) #original setup
+    model = nn.yolo_v11_n(args.num_cls)
     model.cuda()
 
     if args.distributed:
