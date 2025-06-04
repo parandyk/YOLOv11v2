@@ -63,9 +63,13 @@ class Dataset(data.Dataset):
 
     @staticmethod
     def load_image(path):
+        counter = 0 # to be deleted
         samples = []
         for p in [path]:
+            counter += 1 # to be deleted
             p = Path(p)
+            if counter % 100 == 0: #to be deleted
+                print(f"loaded images: " + {counter}) #to be deleted
             with open(p) as f:
                 samples += [x.replace("./", str(p.parent) + os.sep)
                             if x.startswith("./") else x for x in
@@ -95,8 +99,13 @@ class Dataset(data.Dataset):
         path = Path(labels[0]).parent.with_suffix(".cache")
         if os.path.exists(path):
             return torch.load(path)
-
+            
+        counter = 0 # to be deleted
+        
         for img, label in zip(images, labels):
+            counter += 1 # to be deleted
+            if counter % 100 == 0: #TO BE DELETED
+                print(f"loaded images: " + {counter}) #TO BE DELETED
             try:
                 image = Image.open(img)
                 image.verify()
