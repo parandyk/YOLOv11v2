@@ -17,6 +17,7 @@ from nets import nn
 from utils import util
 from utils.dataset import Dataset
 
+data_dir = ""
 
 def get_sampler_split(dataset, ratio, seed = 42, shuffle = False): #new
     import numpy as np
@@ -416,6 +417,9 @@ def main():
     args.world_size = int(os.getenv('WORLD_SIZE', 1))
     args.distributed = int(os.getenv('WORLD_SIZE', 1)) > 1
 
+    global data_dir
+    data_dir = args.data_dir
+    
     with open('utils/args.yaml', errors='ignore') as f:
         params = yaml.safe_load(f)
 
