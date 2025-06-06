@@ -174,6 +174,7 @@ def train(args, params):
 
             t_loss = None
             for i, batch in p_bar:
+                images, targets = batch
                 glob_step = i + num_batch * epoch
                 if glob_step <= warm_up:
                     xi = [0, warm_up]
@@ -184,8 +185,8 @@ def train(args, params):
 
                         if "momentum" in x:
                             x["momentum"] = np.interp(glob_step, xi, [0.8, 0.937])
-                print(f'to batch: {batch}')
-                images = batch["img"].cuda().float() / 255
+                #print(f'to batch: {batch}')
+                 images = images.cuda().float() / 255
                 with torch.amp.autocast("cuda"):
                     pred = model(images)
                     loss, loss_items = criterion(pred, batch)
@@ -279,11 +280,12 @@ def validate(args, params, model=None):
 
     for batch in tqdm.tqdm(loader, desc=('%10s' * 5) % (
     '', 'precision', 'recall', 'mAP50', 'mAP')):
-        image = (batch["img"].cuda().float()) / 255
+        images, targets = batch
+        images = images.cuda().float()) / 255
         for k in ["idx", "cls", "box"]:
             batch[k] = batch[k].cuda()
 
-        outputs = util.non_max_suppression(model(image))
+        outputs = util.non_max_suppression(model(images))
 
         metric = util.update_metrics(outputs, batch, n_iou, iou_v, metric)
 
