@@ -184,7 +184,7 @@ def train(args, params):
 
                         if "momentum" in x:
                             x["momentum"] = np.interp(glob_step, xi, [0.8, 0.937])
-
+                print(f'to batch: {batch}')
                 images = batch["img"].cuda().float() / 255
                 with torch.amp.autocast("cuda"):
                     pred = model(images)
