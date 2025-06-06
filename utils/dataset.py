@@ -193,13 +193,35 @@ class Dataset(data.Dataset):
                 target[key] = list(map(lambda t: t if isinstance(t, torch.Tensor) else torch.tensor([]), targets[key]))
                 target[key] = torch.cat(target[key], dim=0)
                 
-            target["idx"] = torch.tensor([list(map(lambda t: t if isinstance(t, torch.Tensor) else torch.tensor([]), target["labels"]))]) # or torch.cat(list) or torch.tensor([list])
+            #target["idx"] = torch.tensor([list(map(lambda t: torch.arange(t.size(0)) if isinstance(t, torch.Tensor) else torch.tensor([]), target["labels"]))]) #if len(t.shape) > 0 else #? this or below? 
+            #target["idx"] = torch.tensor([list(map(lambda t: t if isinstance(t, torch.Tensor) else torch.tensor([]), target["labels"]))]) # or torch.cat(list) or torch.tensor([list])
+            target["idx"] = torch.arange(target["labels"].size(0))
             target["cls"] = target.pop("labels")
             target["box"] = target.pop("boxes")
-        
         images = torch.stack(images, dim=0)
-        
         return images, target
+        
+    # def collate_fn(batch): #original
+    #     images, targets = zip(*batch)
+    #     targets = pd.DataFrame(targets).to_dict(orient="list")
+        
+    #     target = {}
+        
+    #     if "labels" not in targets:
+    #         for key in ("cls", "box", "idx"):
+    #             target[key] = torch.tensor([])
+    #     else:
+    #         for key in ("labels", "boxes"):
+    #             target[key] = list(map(lambda t: t if isinstance(t, torch.Tensor) else torch.tensor([]), targets[key]))
+    #             target[key] = torch.cat(target[key], dim=0)
+                
+    #         target["idx"] = torch.tensor([list(map(lambda t: t if isinstance(t, torch.Tensor) else torch.tensor([]), target["labels"]))]) # or torch.cat(list) or torch.tensor([list])
+    #         target["cls"] = target.pop("labels")
+    #         target["box"] = target.pop("boxes")
+        
+    #     images = torch.stack(images, dim=0)
+        
+    #     return images, target
     # def collate_fn(batch):
     #     new_batch = {}
     #     keys = batch[0].keys()
