@@ -537,14 +537,14 @@ def update_metrics(preds, batch, niou, iou_v, stats):
     for i, pred in enumerate(preds):
         stat = dict(conf=torch.zeros(0).cuda(), pred_cls=torch.zeros(0).cuda(),
                     tp=torch.zeros(len(pred), niou, dtype=torch.bool).cuda())
-
-        idx = batch["idx"] == i
-        box = batch["box"][idx]
-        cls = batch["cls"][idx]
+        images, targets = batch 
+        idx = targets["idx"] == i
+        box = targets["box"][idx]
+        cls = targets["cls"][idx]
         cls = cls.squeeze(-1)
 
         if len(cls):
-            img_shape = batch["img"].shape[2:]
+            img_shape = images.shape[2:]
             tensor = torch.tensor(img_shape).cuda()[[1, 0, 1, 0]]
             box = wh2xy(box) * tensor
             scale_boxes(box, batch["shape"][i], batch["pad"][i])
