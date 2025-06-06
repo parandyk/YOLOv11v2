@@ -98,10 +98,33 @@ def train(args, params):
 
     ema = util.EMA(model) if args.local_rank == 0 else None
 
+    # #original
+    # sampler = None
+    # dataset = Dataset(args, params, True)
+
+    # if args.distributed:
+    #     sampler = data.distributed.DistributedSampler(dataset)
+    # #end original
+    
+    img_path = data_dir + "/images" + "/train2017" #new
+    anno_path = data_dir + "/annotations" + "/instances_train2017.json" #new
+    dataset = get_dataset(img_path, anno_path, inference = False, wrap = True) #new
+    shuffling = args.shuffle
+
     sampler = None
-    dataset = Dataset(args, params, True)
     if args.distributed:
         sampler = data.distributed.DistributedSampler(dataset)
+        loader = data.DataLoader(dataset, args.batch_size, sampler is None, sampler,
+                             num_workers=8, pin_memory=True, collate_fn=Dataset.collate_fn)
+    else:
+        if args.tsplit:
+            sampler = get_sampler_split(dataset, args.tratio, shuffling)
+            shuffling = False
+            
+        loader = data.DataLoader(dataset, args.batch_size, sampler = sampler, shuffle = shuffling,
+                    num_workers=8, pin_memory=True, collate_fn=Dataset.collate_fn)
+    
+
 
     batch_size = args.batch_size // max(args.world_size, 1)
     loader = data.DataLoader(dataset, batch_size, sampler is None,
@@ -230,10 +253,26 @@ def validate(args, params, model=None):
 
     # model.half()
     model.eval()
-    dataset = Dataset(args, params, False)
-    loader = data.DataLoader(dataset, batch_size=16,
-                             shuffle=False, num_workers=4,
+
+    # #original
+    # dataset = Dataset(args, params, False)
+    # loader = data.DataLoader(dataset, batch_size=16,
+    #                          shuffle=False, num_workers=4,
+    #                          pin_memory=True, collate_fn=Dataset.collate_fn)
+    # #end original
+
+    img_path = data_dir + "/images" + "/val2017" #new
+    anno_path = data_dir + "/annotations" + "/instances_val2017.json" #new
+    dataset = get_dataset(img_path, anno_path, inference = True, wrap = True) #new
+    
+    sampler = None
+    if args.vsplit:
+        sampler = get_sampler_split(dataset, args.vratio)
+
+    
+    loader = data.DataLoader(dataset, batch_size=4, sampler = sampler, shuffle=False, num_workers=4,
                              pin_memory=True, collate_fn=Dataset.collate_fn)
+    
 
     for batch in tqdm.tqdm(loader, desc=('%10s' * 5) % (
     '', 'precision', 'recall', 'mAP50', 'mAP')):
@@ -365,6 +404,11 @@ def main():
     parser.add_argument('--train', action='store_true')
     parser.add_argument('--validate', action='store_true')
     parser.add_argument('--inference', action='store_true')
+    parser.add_argument('--tsplit', action='store_true')
+    parser.add_argument('--vsplit', action='store_true')
+    parser.add_argument('--tratio', default=0.05, type=float)
+    parser.add_argument('--vratio', default=0.05, type=float)
+    parser.add_argument('--shuffle', action='store_true')
 
     args = parser.parse_args()
 
