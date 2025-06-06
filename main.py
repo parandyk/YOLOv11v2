@@ -267,7 +267,7 @@ def validate(args, params, model=None):
 
     img_path = data_dir + "/images" + "/val2017" #new
     anno_path = data_dir + "/annotations" + "/instances_val2017.json" #new
-    dataset = get_dataset(img_path, anno_path, inference = True, wrap = True) #new
+    dataset = get_dataset(img_path, anno_path, inference = True, wrap = True, transf = args.transforms) #new
     
     sampler = None
     if args.vsplit:
