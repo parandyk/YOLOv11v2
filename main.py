@@ -66,8 +66,8 @@ def compose_transforms(inference = False): #new
     
     return composed_transforms
     
-def get_dataset(img_path, anno_path, inference = False, wrap = False, transforms = False): #new
-    if transforms:
+def get_dataset(img_path, anno_path, inference = False, wrap = False, transf = False): #new
+    if transf:
         transforms = compose_transforms(inference)
         dataset = torchvision.datasets.CocoDetection(img_path, anno_path, transforms)
     else:
@@ -111,7 +111,7 @@ def train(args, params):
     
     img_path = data_dir + "/images" + "/train2017" #new
     anno_path = data_dir + "/annotations" + "/instances_train2017.json" #new
-    dataset = get_dataset(img_path, anno_path, inference = False, wrap = True) #new
+    dataset = get_dataset(img_path, anno_path, inference = False, wrap = True, transf = args.transforms) #new
     shuffling = args.shuffle
 
     sampler = None
@@ -412,6 +412,7 @@ def main():
     parser.add_argument('--tratio', default=0.05, type=float)
     parser.add_argument('--vratio', default=0.05, type=float)
     parser.add_argument('--shuffle', action='store_true')
+    parser.add_argument('--transforms, action='store_true')
 
     args = parser.parse_args()
 
