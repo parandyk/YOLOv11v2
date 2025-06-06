@@ -538,10 +538,14 @@ def update_metrics(preds, batch, niou, iou_v, stats):
         stat = dict(conf=torch.zeros(0).cuda(), pred_cls=torch.zeros(0).cuda(),
                     tp=torch.zeros(len(pred), niou, dtype=torch.bool).cuda())
         images, targets = batch 
+        print(f'to targets: {cls}')
         idx = targets["idx"] == i
         box = targets["box"][idx]
         cls = targets["cls"][idx]
+        print(f'to cls: {cls}')
+        print(f'to targets[cls]: {targets["cls"]}')
         cls = cls.squeeze(-1)
+        print(f'to cls po sciskasniu: {cls}')
 
         if len(cls):
             img_shape = images.shape[2:]
