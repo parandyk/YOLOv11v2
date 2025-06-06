@@ -18,6 +18,64 @@ from utils import util
 from utils.dataset import Dataset
 
 
+def get_sampler_split(dataset, ratio, seed = 42, shuffle = False): #new
+    import numpy as np
+    dataset_size = len(dataset)
+    indices = list(range(dataset_size))
+    split = int(np.floor(ratio * dataset_size))
+    
+    if shuffle:
+        np.random.seed(seed)
+        np.random.shuffle(indices)
+        
+    _, split_indices = indices[split:], indices[:split]
+    sampler = torch.utils.data.SubsetRandomSampler(indices)
+    
+    return sampler
+    
+def compose_transforms(inference = False): #new
+    if inference:
+        composed_transforms = torchvision.transforms.v2.Compose(
+                                [
+                                    torchvision.transforms.v2.ToImage(),
+                                    #PRZEKSZTAŁCENIE NA TENSOR TYPU OBRAZOWEGO (TZW. IMAGE TENSOR)
+                            
+                                    torchvision.transforms.v2.ConvertImageDtype(torch.float32),
+                                    #ZMIANA TYPU DANYCH ELEMENTÓW TENSORA
+                            
+                                    torchvision.transforms.v2.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
+                                    #NORMALIZACJA DANYCH TENSORA
+                                    torchvision.transforms.v2.CenterCrop([640, 640])
+                                ]
+                                )
+    else:
+        composed_transforms = torchvision.transforms.v2.Compose(
+                                [
+                                    torchvision.transforms.v2.ToImage(), #PRZEKSZTAŁCENIE NA TENSOR TYPU OBRAZOWEGO (TZW. IMAGE TENSOR)
+                                    torchvision.transforms.v2.ConvertImageDtype(torch.float32), #ZMIANA TYPU DANYCH ELEMENTÓW TENSORA
+                                    torchvision.transforms.v2.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
+                                    torchvision.transforms.v2.RandomHorizontalFlip(),
+                                    torchvision.transforms.v2.RandomVerticalFlip(),
+                                    torchvision.transforms.v2.RandomVerticalFlip(),
+                                    torchvision.transforms.v2.CenterCrop([640, 640])
+                                ]
+                                )
+    
+    return composed_transforms
+    
+def get_dataset(img_path, anno_path, inference = False, wrap = False, transforms = False): #new
+    if transforms:
+        transforms = compose_transforms(inference)
+        dataset = torchvision.datasets.CocoDetection(img_path, anno_path, transforms)
+    else:
+        dataset = torchvision.datasets.CocoDetection(img_path, anno_path)
+        
+    if wrap:
+        dataset = torchvision.datasets.wrap_dataset_for_transforms_v2(dataset, target_keys=("boxes", "labels"))
+        #dataset = torchvision.datasets.wrap_dataset_for_transforms_v2(dataset, target_keys=("boxes", "labels", "image_id", "bbox", "category_id", "image_id"))
+        
+    return dataset
+
 def train(args, params):
     util.init_seeds()
 
