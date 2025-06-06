@@ -283,7 +283,7 @@ def validate(args, params, model=None):
         images, targets = batch
         images = (images.cuda().float()) / 255
         for k in ["idx", "cls", "box"]:
-            batch[k] = batch[k].cuda()
+            targets[k] = targets[k].cuda()
 
         outputs = util.non_max_suppression(model(images))
 
