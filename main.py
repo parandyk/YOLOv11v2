@@ -186,7 +186,7 @@ def train(args, params):
                         if "momentum" in x:
                             x["momentum"] = np.interp(glob_step, xi, [0.8, 0.937])
                 #print(f'to batch: {batch}')
-                images = images.cuda().float() / 255
+                images = (images.cuda().float()) / 255
                 with torch.amp.autocast("cuda"):
                     pred = model(images)
                     loss, loss_items = criterion(pred, batch)
@@ -281,7 +281,7 @@ def validate(args, params, model=None):
     for batch in tqdm.tqdm(loader, desc=('%10s' * 5) % (
     '', 'precision', 'recall', 'mAP50', 'mAP')):
         images, targets = batch
-        images = images.cuda().float()) / 255
+        images = (images.cuda().float()) / 255
         for k in ["idx", "cls", "box"]:
             batch[k] = batch[k].cuda()
 
