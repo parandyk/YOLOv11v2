@@ -179,19 +179,40 @@ class Dataset(data.Dataset):
         return transforms
 
     @staticmethod
-    def collate_fn(batch):
-        new_batch = {}
-        keys = batch[0].keys()
-        values = list(zip(*[list(b.values()) for b in batch]))
-        for i, k in enumerate(keys):
-            value = values[i]
-            if k == "img":
-                value = torch.stack(value, 0)
-            if k in {"cls", 'box'}:
-                value = torch.cat(value, 0)
-            new_batch[k] = value
-        new_batch["idx"] = list(new_batch["idx"])
-        for i in range(len(new_batch["idx"])):
-            new_batch["idx"][i] += i
-        new_batch["idx"] = torch.cat(new_batch["idx"], 0)
-        return new_batch
+    def collate_fn(batch): #original
+        images, targets = zip(*batch)
+        targets = pd.DataFrame(targets).to_dict(orient="list")
+        
+        target = {}
+        
+        if "labels" not in targets:
+            for key in ("cls", "box", "idx"):
+                target[key] = torch.tensor([])
+        else:
+            for key in ("labels", "boxes"):
+                target[key] = list(map(lambda t: t if isinstance(t, torch.Tensor) else torch.tensor([]), targets[key]))
+                target[key] = torch.cat(target[key], dim=0)
+                
+            target["idx"] = torch.tensor([list(map(lambda t: t if isinstance(t, torch.Tensor) else torch.tensor([]), target["labels"]))]) # or torch.cat(list) or torch.tensor([list])
+            target["cls"] = target.pop("labels")
+            target["box"] = target.pop("boxes")
+        
+        images = torch.stack(images, dim=0)
+        
+        return images, target
+    # def collate_fn(batch):
+    #     new_batch = {}
+    #     keys = batch[0].keys()
+    #     values = list(zip(*[list(b.values()) for b in batch]))
+    #     for i, k in enumerate(keys):
+    #         value = values[i]
+    #         if k == "img":
+    #             value = torch.stack(value, 0)
+    #         if k in {"cls", 'box'}:
+    #             value = torch.cat(value, 0)
+    #         new_batch[k] = value
+    #     new_batch["idx"] = list(new_batch["idx"])
+    #     for i in range(len(new_batch["idx"])):
+    #         new_batch["idx"][i] += i
+    #     new_batch["idx"] = torch.cat(new_batch["idx"], 0)
+    #     return new_batch
