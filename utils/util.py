@@ -538,7 +538,7 @@ def update_metrics(preds, batch, niou, iou_v, stats):
         stat = dict(conf=torch.zeros(0).cuda(), pred_cls=torch.zeros(0).cuda(),
                     tp=torch.zeros(len(pred), niou, dtype=torch.bool).cuda())
         images, targets = batch 
-        print(f'to targets: {cls}')
+        print(f'to targets: {targets}')
         idx = targets["idx"] == i
         box = targets["box"][idx]
         cls = targets["cls"][idx]
