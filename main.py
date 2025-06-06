@@ -412,7 +412,7 @@ def main():
     parser.add_argument('--tratio', default=0.05, type=float)
     parser.add_argument('--vratio', default=0.05, type=float)
     parser.add_argument('--shuffle', action='store_true')
-    parser.add_argument('--transforms, action='store_true')
+    parser.add_argument('--transforms', action='store_true')
 
     args = parser.parse_args()
 
